@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Eng. Ahmed Elfaky</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* English Font */
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Arabic Font for specific elements */
+        .arabic-text {
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+        }
+
+        .dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+
+        .dark-mode .text-gray-800 {
+            color: #f7fafc;
+        }
+
+        .dark-mode .border-gray-200 {
+            border-color: #4a5568;
+        }
+
+        /* Toast Animation */
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        .toast-notification {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        .toast-exit {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header & Theme Toggle -->
+    <header
+        class="p-4 shadow-md bg-white sticky top-0 z-40 flex justify-between items-center transition-colors duration-300">
+        <div class="flex items-center gap-2">
+            <i class="fas fa-laptop-code text-primary text-2xl"></i>
+            <h1 class="text-lg font-bold md:text-xl">Computing Revision Bank</h1>
+        </div>
+        <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+            <i class="fas fa-moon text-xl" id="themeIcon"></i>
+        </button>
+    </header>
+
+    <!-- Welcome Modal (Overlay) - ARABIC as requested -->
+    <div id="welcomeModal" class="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-lg w-full p-6 text-center space-y-4 border-2 border-primary arabic-text">
+            <div class="text-4xl text-primary mb-2">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">تنبيه هام جداً</h2>
+            <div
+                class="text-right text-gray-700 dark:text-gray-300 space-y-2 text-sm md:text-base leading-relaxed p-4 bg-gray-100 dark:bg-gray-700 rounded">
+                <p>⚠️ <strong>ركز جيداً:</strong> هذا الاختبار للمراجعة الذاتية والتأكد من مذاكرتك ومجهودك.</p>
+                <p>🚫 هذا الملف <strong>لا يمت للامتحان الفعلي بصلة</strong>، هو فقط تدريب لك.</p>
+                <p>📚 يرجى مراجعة المحاضرات الأساسية قبل البدء.</p>
+                <p class="font-bold text-center mt-4 text-primary text-lg">(صلِّ على النبي ❤️)</p>
+                <p class="text-xs text-center mt-2 text-gray-1000">تم إعداده بواسطة: <span class="font-bold">ENG: Ahmed
+                        Elfaky</span></p>
+            </div>
+
+            <button id="startBtn" disabled
+                class="w-full py-3 px-6 rounded-lg font-bold text-white bg-gray-400 cursor-not-allowed transition-all">
+                انتظر (<span id="countdown">10</span>) ...
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area (English) -->
+    <main class="flex-grow container mx-auto p-4 max-w-3xl">
+
+        <!-- Quiz Container (Hidden initially) -->
+        <div id="quizContainer" class="hidden space-y-6">
+            <!-- Progress Bar -->
+            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
+                <span>Progress</span>
+                <span><span id="currentQNum">1</span> / <span id="totalQNum">0</span></span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                <div id="progressBar" class="bg-primary h-2.5 rounded-full transition-all duration-300"
+                    style="width: 0%"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div
+                class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-t-4 border-primary transition-colors duration-300">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="qTypeBadge"
+                        class="text-xs font-bold px-2 py-1 rounded border border-gray-300 dark:border-gray-600 uppercase">MCQ</span>
+                </div>
+
+                <h3 id="questionText"
+                    class="text-xl md:text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100 leading-snug">
+                    <!-- Question goes here -->
+                </h3>
+
+                <!-- Answer Area -->
+                <div id="answersArea" class="space-y-3">
+                    <!-- Options or Textarea will be injected here -->
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between pt-4">
+                <button id="prevBtn"
+                    class="hidden px-6 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold transition">Previous</button>
+                <button id="nextBtn"
+                    class="px-6 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white font-semibold shadow-md transition transform active:scale-95">Next</button>
+                <button id="submitBtn"
+                    class="hidden px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold shadow-md transition transform active:scale-95">Finish
+                    & See Results</button>
+            </div>
+        </div>
+
+        <!-- Results Container (Hidden initially) -->
+        <div id="resultsContainer" class="hidden space-y-6">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center transition-colors duration-300">
+                <div class="inline-block p-4 rounded-full bg-blue-100 dark:bg-blue-900 mb-4">
+                    <i class="fas fa-trophy text-4xl text-primary"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-2">Quiz Results</h2>
+                <div class="text-5xl font-bold text-primary mb-4"><span id="finalScore">0</span>%</div>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">You answered <span id="correctCount"
+                        class="font-bold text-green-500">0</span> correctly out of <span id="totalCount">0</span></p>
+
+                <button onclick="location.reload()"
+                    class="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg">
+                    <i class="fas fa-redo ml-2"></i> Retake Quiz
+                </button>
+            </div>
+
+            <!-- Detailed Review -->
+            <div class="space-y-4" id="reviewList">
+                <!-- Review Items injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 arabic-text"></div>
+
+    <!-- Footer -->
+    <footer class="mt-auto p-4 text-center text-gray-500 text-sm dark:text-gray-700">
+        &copy; 2026 - Prepared by Eng. Ahmed Elfaky
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // --- DATA: Questions Bank (Expanded) ---
+        // questions are stored with 'correctAnswerText' to allow shuffling of options
+        const rawQuestionsDB = [
+            // --- Lecture 1 ---
+            {
+                type: "MCQ",
+                question: "Raw, unorganized facts that need processing are called:",
+                options: ["Information", "Data", "Software", "Output"],
+                correctAnswerText: "Data"
+            },
+            {
+                type: "MCQ",
+                question: "Which type of computer is typically used for weather forecasting and complex scientific research?",
+                options: ["Mainframe", "Midrange Server", "Supercomputer", "Embedded Computer"],
+                correctAnswerText: "Supercomputer"
+            },
+            {
+                type: "MCQ",
+                question: "Computers embedded into products like cars or microwaves to perform specific tasks are called:",
+                options: ["Personal Computers", "Embedded Computers", "Mainframes", "Mobile Devices"],
+                correctAnswerText: "Embedded Computers"
+            },
+            {
+                type: "MCQ",
+                question: "Which of the following is NOT one of the 5 basic computer operations?",
+                options: ["Input", "Processing", "Programming", "Storage"],
+                correctAnswerText: "Programming"
+            },
+            {
+                type: "MCQ",
+                question: "Data that has been processed into a meaningful form is called:",
+                options: ["Input", "Information", "Code", "Raw Data"],
+                correctAnswerText: "Information"
+            },
+            {
+                type: "MCQ",
+                question: "Large computers used by organizations like banks to manage centralized data are:",
+                options: ["Supercomputers", "Mainframe Computers", "Midrange Servers", "Workstations"],
+                correctAnswerText: "Mainframe Computers"
+            },
+            {
+                type: "Essay",
+                question: "Explain the difference between Data and Information with an example.",
+                keywords: ["raw", "fact", "process", "meaning", "organized"],
+                modelAnswer: "Data is raw facts (e.g., number 100). Information is processed data with meaning (e.g., Price=$100).",
+                maxPoints: 5
+            },
+
+            // --- Lecture 2 ---
+            {
+                type: "MCQ",
+                question: "One Byte is equivalent to how many bits?",
+                options: ["4", "16", "8", "32"],
+                correctAnswerText: "8"
+            },
+            {
+                type: "MCQ",
+                question: "Which part of the CPU is responsible for performing addition and subtraction?",
+                options: ["Control Unit", "ALU", "Registers", "FPU"],
+                correctAnswerText: "ALU"
+            },
+            {
+                type: "MCQ",
+                question: "RAM is considered _____ memory.",
+                options: ["Non-volatile", "Permanent", "Volatile", "Read-Only"],
+                correctAnswerText: "Volatile"
+            },
+            {
+                type: "MCQ",
+                question: "A technology that allows the CPU to process multiple instructions at the same time (assembly line style) is:",
+                options: ["Coding", "Pipelining", "Decoding", "Storing"],
+                correctAnswerText: "Pipelining"
+            },
+            {
+                type: "MCQ",
+                question: "The 'brain' of the computer that consists of the ALU and Control Unit is the:",
+                options: ["RAM", "Motherboard", "CPU", "Hard Drive"],
+                correctAnswerText: "CPU"
+            },
+            {
+                type: "MCQ",
+                question: "Which coding system is used to represent English characters (text-based data)?",
+                options: ["Binary", "ASCII", "Unicode", "Decimal"],
+                correctAnswerText: "ASCII"
+            },
+            {
+                type: "MCQ",
+                question: "High-speed memory built inside the CPU to store data temporarily during processing is called:",
+                options: ["RAM", "Registers", "ROM", "Flash Memory"],
+                correctAnswerText: "Registers"
+            },
+            {
+                type: "MCQ",
+                question: "Which unit in the CPU handles decimal numbers (floating point)?",
+                options: ["ALU", "FPU", "Control Unit", "Prefetch Unit"],
+                correctAnswerText: "FPU"
+            },
+            {
+                type: "MCQ",
+                question: "The main circuit board inside the system unit is called:",
+                options: ["CPU", "Motherboard", "Hard Disk", "ROM"],
+                correctAnswerText: "Motherboard"
+            },
+            {
+                type: "MCQ",
+                question: "The Binary Numbering System uses how many symbols?",
+                options: ["10 symbols", "8 symbols", "2 symbols (0 and 1)", "16 symbols"],
+                correctAnswerText: "2 symbols (0 and 1)"
+            },
+            {
+                type: "Essay",
+                question: "List the four steps of the Machine Cycle in order.",
+                keywords: ["fetch", "decode", "execute", "store"],
+                modelAnswer: "1. Fetch, 2. Decode, 3. Execute, 4. Store.",
+                maxPoints: 5
+            },
+
+            // --- Lecture 3 ---
+            {
+                type: "MCQ",
+                question: "Which of the following storage media has NO moving parts?",
+                options: ["Magnetic Hard Disk", "SSD (Flash Memory)", "DVD-ROM", "Magnetic Tape"],
+                correctAnswerText: "SSD (Flash Memory)"
+            },
+            {
+                type: "MCQ",
+                question: "The typical capacity of a standard single-layer DVD is:",
+                options: ["650 MB", "25 GB", "4.7 GB", "1 TB"],
+                correctAnswerText: "4.7 GB"
+            },
+            {
+                type: "MCQ",
+                question: "Magnetic Tape uses ______ access, meaning you must fast-forward to find data.",
+                options: ["Random", "Sequential", "Direct", "Instant"],
+                correctAnswerText: "Sequential"
+            },
+            {
+                type: "MCQ",
+                question: "Which optical disc uses a Blue-Violet laser to store approximately 25 GB?",
+                options: ["CD", "DVD", "Blu-ray", "Floppy Disk"],
+                correctAnswerText: "Blu-ray"
+            },
+            {
+                type: "MCQ",
+                question: "Hard disks are organized into Tracks, Sectors, and _____.",
+                options: ["Clusters", "Pits", "Lands", "Pixels"],
+                correctAnswerText: "Clusters"
+            },
+            {
+                type: "MCQ",
+                question: "Which storage technology uses lasers to read/write data?",
+                options: ["Magnetic", "Optical", "Solid State", "Cloud"],
+                correctAnswerText: "Optical"
+            },
+            {
+                type: "Essay",
+                question: "Why are SSDs preferred over Magnetic Hard Drives in laptops? (Mention 2 reasons)",
+                keywords: ["fast", "durable", "shock", "power", "quiet", "moving"],
+                modelAnswer: "SSDs are faster, more durable (shock-resistant), quiet, and consume less power because they have no moving parts.",
+                maxPoints: 5
+            },
+
+            // --- Lecture 4 ---
+            {
+                type: "MCQ",
+                question: "The quality of scanners and printers is measured in:",
+                options: ["ppm", "dpi", "GHz", "GB"],
+                correctAnswerText: "dpi"
+            },
+            {
+                type: "MCQ",
+                question: "Which technology is used to track inventory using radio waves (e.g., tags on clothes)?",
+                options: ["OCR", "Barcode", "RFID", "Biometrics"],
+                correctAnswerText: "RFID"
+            },
+            {
+                type: "MCQ",
+                question: "Which printer type uses toner powder and is best for high-speed text printing?",
+                options: ["Ink-jet", "Laser", "Dot-matrix", "3D Printer"],
+                correctAnswerText: "Laser"
+            },
+            {
+                type: "MCQ",
+                question: "Input devices that read biological data like fingerprints or face ID are called:",
+                options: ["Scanners", "Biometric Readers", "RFID Readers", "Barcode Readers"],
+                correctAnswerText: "Biometric Readers"
+            },
+            {
+                type: "MCQ",
+                question: "Which type of display uses organic material and can be flexible?",
+                options: ["CRT", "LCD", "LED", "OLED"],
+                correctAnswerText: "OLED"
+            },
+            {
+                type: "MCQ",
+                question: "An input device used to convert hard copy (paper) into soft copy (digital) is:",
+                options: ["Printer", "Scanner", "Plotter", "Monitor"],
+                correctAnswerText: "Scanner"
+            },
+            {
+                type: "Essay",
+                question: "Explain the difference between Laser and Ink-jet printers.",
+                keywords: ["toner", "ink", "text", "photo", "powder", "liquid"],
+                modelAnswer: "Laser printers use toner powder (best for text). Ink-jet printers use liquid ink (best for photos).",
+                maxPoints: 5
+            }
+        ];
+
+        // --- STATE MANAGEMENT ---
+        let questionsDB = []; // Will hold shuffled questions with shuffled options
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let isDarkMode = false;
+        let countdownValue = 10; // 10 Seconds as requested (likely typo for minutes in prompt, but 10s is standard UX)
+
+        // --- DOM ELEMENTS ---
+        const welcomeModal = document.getElementById('welcomeModal');
+        const startBtn = document.getElementById('startBtn');
+        const countdownSpan = document.getElementById('countdown');
+        const quizContainer = document.getElementById('quizContainer');
+        const questionText = document.getElementById('questionText');
+        const answersArea = document.getElementById('answersArea');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const currentQNum = document.getElementById('currentQNum');
+        const totalQNum = document.getElementById('totalQNum');
+        const progressBar = document.getElementById('progressBar');
+        const qTypeBadge = document.getElementById('qTypeBadge');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const reviewList = document.getElementById('reviewList');
+
+        // --- UTILS: Shuffle Function ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function () {
+            // 1. Prepare Data: Shuffle Questions AND Options
+            // We create a deep copy and shuffle
+            let tempQuestions = JSON.parse(JSON.stringify(rawQuestionsDB));
+            shuffleArray(tempQuestions);
+
+            // Process each question to shuffle options if it's MCQ
+            questionsDB = tempQuestions.map(q => {
+                if (q.type === 'MCQ') {
+                    // Shuffle options
+                    const originalOptions = [...q.options];
+                    const shuffledOptions = shuffleArray([...q.options]);
+
+                    // Find new index of correct answer
+                    // We stored 'correctAnswerText' to make this easy
+                    const correctIndex = shuffledOptions.indexOf(q.correctAnswerText);
+
+                    return {
+                        ...q,
+                        options: shuffledOptions,
+                        correct: correctIndex
+                    };
+                } else {
+                    return q; // Essay stays same
+                }
+            });
+
+            // 2. Theme Check
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.body.classList.add('dark-mode');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                isDarkMode = true;
+            }
+
+            // 3. Welcome Countdown
+            const timer = setInterval(() => {
+                countdownValue--;
+                countdownSpan.innerText = countdownValue;
+                if (countdownValue <= 0) {
+                    clearInterval(timer);
+                    startBtn.innerText = "OK";
+                    startBtn.disabled = false;
+                    startBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                    startBtn.classList.add('bg-primary', 'hover:bg-blue-600', 'active:scale-95');
+                }
+            }, 1000);
+
+            totalQNum.innerText = questionsDB.length;
+        };
+
+        // --- THEME TOGGLE ---
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            document.body.classList.toggle('dark-mode');
+            isDarkMode = !isDarkMode;
+
+            if (isDarkMode) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.add('fa-moon');
+                themeIcon.classList.remove('fa-sun');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+
+        // --- TOAST NOTIFICATION (PRAYER) ---
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification bg-white dark:bg-gray-700 border-r-4 border-red-500 shadow-lg rounded p-4 flex items-center gap-3 min-w-[300px] flex-row-reverse';
+            toast.innerHTML = `
+                <div class="text-red-500 text-2xl"><i class="fas fa-heart"></i></div>
+                <div class="text-right">
+                    <h4 class="font-bold text-gray-800 dark:text-white text-sm">تذكير</h4>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm font-bold">${message}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        }
+
+        // 7-minute interval for prayer (7 * 60 * 1000)
+        setInterval(() => {
+            showToast("صلِّ على النبي ❤️");
+        }, 420000);
+
+        // --- QUIZ LOGIC ---
+
+        startBtn.addEventListener('click', () => {
+            welcomeModal.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            renderQuestion();
+            // Show first prayer reminder shortly after start
+            setTimeout(() => showToast("ابدأ بذكر الله.. صلِّ على النبي ❤️"), 2000);
+        });
+
+        function renderQuestion() {
+            const q = questionsDB[currentQuestionIndex];
+
+            // Update UI Counters
+            currentQNum.innerText = currentQuestionIndex + 1;
+            const progress = ((currentQuestionIndex + 1) / questionsDB.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Update Text
+            questionText.innerText = q.question;
+            qTypeBadge.innerText = q.type;
+
+            // Colors for badges
+            if (q.type === 'MCQ') {
+                qTypeBadge.className = 'text-xs font-bold px-2 py-1 rounded border border-blue-400 text-blue-500 uppercase';
+            } else {
+                qTypeBadge.className = 'text-xs font-bold px-2 py-1 rounded border border-purple-400 text-purple-500 uppercase';
+            }
+
+            // Clear previous answers
+            answersArea.innerHTML = '';
+
+            // Render Input based on Type
+            if (q.type === 'MCQ') {
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('div');
+                    // Check if already selected
+                    const isSelected = userAnswers[currentQuestionIndex] === idx;
+
+                    btn.className = `p-4 rounded-lg border-2 cursor-pointer transition flex items-center gap-3 group ${isSelected
+                        ? 'border-primary bg-blue-50 dark:bg-blue-900/30 dark:border-blue-500'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-gray-500'
+                        }`;
+
+                    // Letter labels (A, B, C, D)
+                    const letter = String.fromCharCode(65 + idx); // 65 is 'A'
+
+                    btn.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-500 group-hover:bg-blue-100 dark:group-hover:bg-gray-600 transition ${isSelected ? 'bg-primary text-white dark:bg-primary dark:text-white' : ''}">
+                            ${letter}
+                        </div>
+                        <span class="text-gray-700 dark:text-gray-200 font-medium text-lg">${opt}</span>
+                    `;
+
+                    btn.onclick = () => selectMCQ(idx);
+                    answersArea.appendChild(btn);
+                });
+            } else {
+                // Essay
+                const textarea = document.createElement('textarea');
+                textarea.className = "w-full p-4 rounded-lg border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none min-h-[120px] text-lg";
+                textarea.placeholder = "Type your answer here...";
+                textarea.value = userAnswers[currentQuestionIndex] || '';
+                textarea.oninput = (e) => {
+                    userAnswers[currentQuestionIndex] = e.target.value;
+                };
+                answersArea.appendChild(textarea);
+            }
+
+            // Button States
+            prevBtn.classList.toggle('hidden', currentQuestionIndex === 0);
+            if (currentQuestionIndex === questionsDB.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        function selectMCQ(index) {
+            userAnswers[currentQuestionIndex] = index;
+            renderQuestion(); // Re-render to update styles
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentQuestionIndex < questionsDB.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        });
+
+        submitBtn.addEventListener('click', calculateResults);
+
+        // --- GRADING ALGORITHM ---
+        function calculateResults() {
+            let totalScore = 0;
+            let maxTotalScore = 0;
+            let resultsHTML = '';
+            let correctCount = 0;
+
+            questionsDB.forEach((q, index) => {
+                const userAnswer = userAnswers[index];
+                let isCorrect = false;
+                let score = 0;
+                let maxPoints = q.type === 'MCQ' ? 1 : q.maxPoints;
+                let feedbackClass = '';
+                let feedbackIcon = '';
+                let detailedFeedback = '';
+
+                maxTotalScore += maxPoints;
+
+                if (q.type === 'MCQ') {
+                    if (userAnswer === q.correct) {
+                        score = 1;
+                        isCorrect = true;
+                        correctCount++;
+                        feedbackClass = 'border-green-500 bg-green-50 dark:bg-green-900/20';
+                        feedbackIcon = '<i class="fas fa-check-circle text-green-500"></i>';
+                        detailedFeedback = `<p class="text-green-600 text-sm mt-2 font-bold">Correct!</p>`;
+                    } else {
+                        feedbackClass = 'border-red-500 bg-red-50 dark:bg-red-900/20';
+                        feedbackIcon = '<i class="fas fa-times-circle text-red-500"></i>';
+                        const userText = userAnswer !== undefined ? q.options[userAnswer] : 'No Answer';
+                        detailedFeedback = `
+                            <p class="text-red-500 text-sm mt-2">Your Answer: <span class="font-medium">${userText}</span></p>
+                            <p class="text-green-600 text-sm">Correct Answer: <span class="font-bold">${q.options[q.correct]}</span></p>
+                        `;
+                    }
+                } else {
+                    // ESSAY GRADING LOGIC
+                    if (!userAnswer || userAnswer.trim() === '') {
+                        score = 0;
+                        feedbackClass = 'border-red-500 bg-red-50 dark:bg-red-900/20';
+                        feedbackIcon = '<i class="fas fa-times-circle text-red-500"></i>';
+                        detailedFeedback = `<p class="text-red-500 text-sm mt-2">No Answer Provided.</p>`;
+                    } else {
+                        // Normalize Text: lowercase
+                        const cleanUser = userAnswer.toLowerCase();
+                        let matches = 0;
+
+                        q.keywords.forEach(kw => {
+                            if (cleanUser.includes(kw.toLowerCase())) matches++;
+                        });
+
+                        if (matches >= 2) { // Good match
+                            score = maxPoints;
+                            isCorrect = true;
+                            correctCount++;
+                            feedbackClass = 'border-green-500 bg-green-50 dark:bg-green-900/20';
+                            feedbackIcon = '<i class="fas fa-check-circle text-green-500"></i>';
+                            detailedFeedback = `<p class="text-green-600 text-sm mt-2 font-bold">Excellent! (Keywords match)</p>`;
+                        } else if (matches > 0) { // Partial
+                            score = Math.ceil(maxPoints / 2);
+                            feedbackClass = 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20';
+                            feedbackIcon = '<i class="fas fa-exclamation-circle text-yellow-500"></i>';
+                            detailedFeedback = `<p class="text-yellow-600 text-sm mt-2 font-bold">Partial Credit. Score: ${score}/${maxPoints}.</p>`;
+                        } else { // Wrong
+                            score = 0;
+                            feedbackClass = 'border-red-500 bg-red-50 dark:bg-red-900/20';
+                            feedbackIcon = '<i class="fas fa-times-circle text-red-500"></i>';
+                            detailedFeedback = `<p class="text-red-500 text-sm mt-2">Answer does not match keywords.</p>`;
+                        }
+                    }
+
+                    // Always show model answer for Essay
+                    detailedFeedback += `
+                        <div class="mt-3 p-2 bg-gray-100 dark:bg-gray-700 rounded text-sm">
+                            <span class="font-bold block text-gray-700 dark:text-gray-300">Model Answer:</span>
+                            <span class="text-gray-600 dark:text-gray-400 block">${q.modelAnswer}</span>
+                        </div>
+                    `;
+                }
+
+                totalScore += score;
+
+                // Build Review Card
+                resultsHTML += `
+                    <div class="p-4 rounded-lg border-2 ${feedbackClass} text-left">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-bold text-gray-800 dark:text-gray-200 text-lg w-10/12"><span class="text-primary">Q${index + 1}:</span> ${q.question}</h4>
+                            <div class="text-2xl">${feedbackIcon}</div>
+                        </div>
+                        <div class="mt-2 pl-4 border-l-2 border-gray-300 dark:border-gray-600">
+                            ${detailedFeedback}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Show Results
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+
+            // Calculate Percentage
+            const percentage = Math.round((totalScore / maxTotalScore) * 100);
+
+            document.getElementById('finalScore').innerText = percentage;
+            document.getElementById('correctCount').innerText = correctCount;
+            document.getElementById('totalCount').innerText = questionsDB.length;
+            reviewList.innerHTML = resultsHTML;
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+            showToast("تم الانتهاء! صلِّ على النبي ❤️");
+        }
+
+    </script>
+</body>
+
+</html>
